@@ -7,7 +7,7 @@ console.log(num1 - 100);
 console.log(num1 * 100);
 console.log(num1 / 1500);
 
-console.log("********Additional Mathmatical Operations********")
+console.log("********Additional Mathematical Operations********")
 //additional Mathematical Operations
 console.log(num1 % 1500); // Remainder
 console.log(++num1); //Increment
