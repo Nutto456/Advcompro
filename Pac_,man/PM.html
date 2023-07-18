@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        #game-board {
+            display: flex;
+            flex-wrap: wrap;
+            width: 420px;
+        }
+
+        .cell {
+            width: 20px;
+            height: 20px;
+            background-color: #000;
+        }
+
+        .pacman {
+            background-color: #ff0;
+            border-radius: 50%;
+        }
+
+        .ghost {
+            background-color: #f00;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-board"></div>
+
+    <script>
+        // Constants
+        const ROWS = 21;
+        const COLS = 21;
+        const EMPTY = 0;
+        const PACMAN = 1;
+        const GHOST = 2;
+
+        // Game board representation
+        const board = [
+            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+            [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+            [2, 0, 2, 2, 0, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 2, 2, 2, 0, 2],
+            [2, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 2],
+            [2, 0, 2, 0, 2, 0, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 2, 2, 0, 2],
+            [2, 0, 2, 0, 2, 0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0, 2, 0, 2],
+            [2, 0, 2, 0, 2, 2, 2, 2, 0, 2, 2, 0, 2, 2, 2, 2, 2, 0, 2, 0, 2],
+            [2, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 2],
+            [2, 0, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 0, 2, 0, 2],
+            [2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0, 2, 0, 2],
+            [2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 0, 0, 0, 2, 2, 2, 2, 0, 2, 0, 2],
+            [2, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+            [2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 2, 2, 2, 0, 2],
+            [2, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 2, 0, 2],
+            [2, 0, 2, 0, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 0, 2],
+            [2, 0, 2, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0, 2],
+            [2, 0, 2, 2, 0, 2, 0, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 0, 2, 0, 2],
+            [2, 0, 2, 0, 2, 2, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0, 2, 0, 2],
+            [2, 0, 2, 0, 0, 0, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 2, 2, 0, 2],
+            [2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+        ];
+
+        // Game state
+        let score = 0;
+        let pacman = { x: 10, y: 10 };
+        let ghosts = [{ x: 9, y: 9 }, { x: 11, y: 9 }];
+
+        // Render the game board
+        function renderBoard() {
+            const gameBoard = document.getElementById('game-board');
+            gameBoard.innerHTML = '';
+
+            for (let row = 0; row < ROWS; row++) {
+                for (let col = 0; col < COLS; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+
+                    if (board[row][col] === PACMAN) {
+                        const pacmanDiv = document.createElement('div');
+                        pacmanDiv.className = 'pacman';
+                        cell.appendChild(pacmanDiv);
+                    } else if (board[row][col] === GHOST) {
+                        const ghostDiv = document.createElement('div');
+                        ghostDiv.className = 'ghost';
+                        cell.appendChild(ghostDiv);
+                    }
+
+                    gameBoard.appendChild(cell);
+                }
+            }
+        }
+
+        // Handle key presses
+        document.addEventListener('keydown', (event) => {
+            const key = event.key;
+            if (key === 'ArrowUp') {
+                movePacman(-1, 0);
+            } else if (key === 'ArrowDown') {
+                movePacman(1, 0);
+            } else if (key === 'ArrowLeft') {
+                movePacman(0, -1);
+            } else if (key === 'ArrowRight') {
+                movePacman(0, 1);
+            }
+        });
+
+        // Move Pac-Man
+        function movePacman(dx, dy) {
+            const newX = pacman.x + dx;
+            const newY = pacman.y + dy;
+
+            if (board[newX][newY] !== 2) {
+                board[pacman.x][pacman.y] = EMPTY;
+                pacman.x = newX;
+                pacman.y = newY;
+                board[newX][newY] = PACMAN;
+
+                renderBoard();
+            }
+        }
+
+        // Game loop
+        function gameLoop() {
+            // Move ghosts randomly
+            ghosts.forEach((ghost) => {
+                const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+                const randomDirection = directions[Math.floor(Math.random() * directions.length)];
+                const dx = randomDirection[0];
+                const dy = randomDirection[1];
+
+                const newX = ghost.x + dx;
+                const newY = ghost.y + dy;
+
+                if (board[newX][newY] !== 2) {
+                    board[ghost.x][ghost.y] = EMPTY;
+                    ghost.x = newX;
+                    ghost.y = newY;
+                    board[newX][newY] = GHOST;
+                }
+            });
+
+            // Check collision with ghosts
+            ghosts.forEach((ghost) => {
+                if (ghost.x === pacman.x && ghost.y === pacman.y) {
+                    gameOver();
+                }
+            });
+
+            renderBoard();
+        }
+
+        // Game over
+        function gameOver() {
+            clearInterval(gameInterval);
+            alert('Game over! Your score: ' + score);
+        }
+
+        renderBoard();
+        const gameInterval = setInterval(gameLoop, 200);
+    </script>
+</body>
+</html>
